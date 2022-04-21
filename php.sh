@@ -502,4 +502,8 @@ echo "浏览器访问 http://`hostname -I|awk '{print $1}'`/"
 yum install -y git
 cd /home/wwwroot
 mv cms cms_bak
-git clone https://longin01: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@github.com/longin01/ncys.git cms
+git clone https://longin01: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@github.com/longin01/ncyu.git cms
+
+rm -rf cms/application/data/install/install.lock
+chmod -R 777 cms/runtime
+chmod -R 777 cms
