@@ -140,18 +140,18 @@ EOF
 
 [ ! -d /etc/nginx/vhosts ] && mkdir -p /etc/nginx/vhosts
 
-cat > /etc/nginx/vhosts/wordpress.conf << "EOF"
+cat > /etc/nginx/vhosts/cms.conf << "EOF"
 server {
     listen   80;
     server_name localhost;
     #禁ip访问，只能域名
-    #if ($host != 'localtest'){
+    #if ($host != '52youhu.com'){
     #return 403;
     #}
-    set $base "/home/wwwroot/wordpress";
+    set $base "/home/wwwroot/cms";
     index index.php index.html index.htm;
-    access_log  /var/log/nginx/wordpress.log  main;
-    root /home/wwwroot/wordpress;
+    access_log  /var/log/nginx/cms.log  main;
+    root /home/wwwroot/cms;
 
 #匹配成功后跳转到百度，执行永久301跳转
 #rewrite ^/(.*) http://www.baidu.com/ permanent;
@@ -163,7 +163,7 @@ server {
 #
 #        }
 
-#wordpress、tv端都要配置
+#cms、tv端都要配置
 #location ~* \.(m3u8|ts|aac)$ {
 #         proxy_cache off;                    # 禁用代理缓存
 #         expires -1;                         # 禁用页面缓存
@@ -188,14 +188,14 @@ server {
 #server {
 #    listen   443 ssl;
 #    server_name  localhost;
-#    set $base "/home/wwwroot/wordpress";
+#    set $base "/home/wwwroot/cms";
 #    index index.php index.html index.htm;
-#    access_log  /var/log/nginx/wordpress.log  main;
+#    access_log  /var/log/nginx/cms.log  main;
 
-#   root /home/wwwroot/wordpress;
+#   root /home/wwwroot/cms;
 
-#    ssl_certificate "/etc/pki/tls/wordpress/2020.pem";
-#    ssl_certificate_key "/etc/pki/tls/wordpress/2020.key";
+#    ssl_certificate "/etc/pki/tls/cms/2020.pem";
+#    ssl_certificate_key "/etc/pki/tls/cms/2020.key";
 #    ssl_session_timeout 5m;
 #    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
 #    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
@@ -215,25 +215,42 @@ location / {
         root   html;
     }
 
-location ~ \.php$ {
+#location ~ \.php$ {
 # 404
 #        try_files $fastcgi_script_name =404;
 
-        #default fastcgi_params
-        include fastcgi_params;
+        # default fastcgi_params
+  #      include fastcgi_params;
 
-        #fastcgi settings
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index  index.php;
-        #fastcgi_buffers  8 16k;
-        #fastcgi_buffer_size  32k;
+        # fastcgi settings
+        #fastcgi_pass 127.0.0.1:9000;
+        #fastcgi_index  index.php;
+   #     fastcgi_buffers  8 16k;
+   #     fastcgi_buffer_size  32k;
 
-        fastcgi_param DOCUMENT_ROOT  $realpath_root;
-        fastcgi_param SCRIPT_FILENAME  $realpath_root$fastcgi_script_name;
-      #fastcgi_param PHP_ADMIN_VALUE  "open_basedir=$base/:/usr/lib/php/:/usr/lib64/php:/tmp/";
-      fastcgi_param PHP_ADMIN_VALUE  "open_basedir=$document_root/:/usr/lib/php/:/usr/lib64/php:/tmp/:/home/wwwroot/wordpress";         
+        #fastcgi_param DOCUMENT_ROOT  $realpath_root;
+        #fastcgi_param SCRIPT_FILENAME  $realpath_root$fastcgi_script_name;
+# fastcgi_param PHP_ADMIN_VALUE  "open_basedir=$base/:/usr/lib/php/:/usr/lib64/php:/tmp/";
+      #  fastcgi_param PHP_ADMIN_VALUE  "open_basedir=$document_root/:/usr/lib/php/:/usr/lib64/php:/tmp/:/home/wwwroot/cim";         
       
-  }
+  # }
+
+#php5静态路由
+        location ~ .+\.php($|/) {  
+                    set $script $uri;  
+                    set $path_info "/";  
+                    if ($uri ~ "^(.+\.php)(/.+)") {  
+                        set $script     $1;  
+                        set $path_info  $2;  
+                    }  
+      
+            fastcgi_pass 127.0.0.1:9000;  
+            fastcgi_index index.php?IF_REWRITE=1;  
+            include fastcgi_params;  
+            fastcgi_param PATH_INFO $path_info;  
+            fastcgi_param SCRIPT_FILENAME $document_root/$script;  
+            fastcgi_param SCRIPT_NAME $script;  
+}
 
 #location = /favicon.ico {
 #log_not_found off;
@@ -261,117 +278,9 @@ location ~ \.php$ {
 }
 EOF
 
-realip=`hostname -I|awk '{print $1}'`
-sed -i "s#localhost#${realip}#g" /etc/nginx/vhosts/wordpress.conf
+[ ! -d /home/wwwroot/cms ] && mkdir -p /home/wwwroot/cms
 
-[ ! -d /home/wwwroot/wordpress ] && mkdir -p /home/wwwroot/wordpress
-
-cat>/home/wwwroot/wordpress/index.php<<EOF
-<?php
-echo phpinfo();
-?>
-EOF
-
-cat > /etc/nginx/vhosts/matomo.conf << "EOF"
-server {
-    listen   81;
-    server_name localhost;
-    set $base "/home/wwwroot/matomo";
-    index index.php index.html index.htm;
-    access_log  /var/log/nginx/matomo.log  main;
-    root /home/wwwroot/matomo;
-
-#location ~* \.(m3u8|ts|aac)$ {
-#         proxy_cache off;                    # 禁用代理缓存
-#         expires -1;                         # 禁用页面缓存
-#         proxy_pass http://172.18.249.4:8088;  # 反代目标 URL，推流内网ip+Nginx端口
-#         sub_filter 'http://172.18.249.4:8088' 'http://$host/';   # 替换 m3u8 文件里的资源链接
-#         sub_filter_last_modified off;       # 删除原始响应里的浏览器缓存值
-#         sub_filter_once off;                # 替换所有匹配内容
-#         sub_filter_types *;                 # 匹配任何 MIME 类型
-#}
-
-#server {
-#    listen   443 ssl;
-#    server_name  localhost;
-#    set $base "/home/wwwroot/matomo";
-#    index index.php index.html index.htm;
-#    access_log  /var/log/nginx/matomo.log  main;
-
-#   root /home/wwwroot/matomo;
-
-#    ssl_certificate "/etc/pki/tls/matomo/2020.pem";
-#    ssl_certificate_key "/etc/pki/tls/matomo/2020.key";
-#    ssl_session_timeout 5m;
-#    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
-#    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-#    ssl_prefer_server_ciphers on;
-
-location / {  
-
-        if (!-e $request_filename) {
- 	rewrite ^(.*)$ /index.php?s=$1 last;
- 	break;
-        }
-}
-    #error_page  404              /404.html;
-    #error_page  500 502 503 504  /50x.html;
-
-    location = /50x.html {
-        root   html;
-    }
-
-location ~ \.php$ {
-# 404
-#        try_files $fastcgi_script_name =404;
-
-        #default fastcgi_params
-        include fastcgi_params;
-
-        #fastcgi settings
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index  index.php;
-        #fastcgi_buffers  8 16k;
-        #fastcgi_buffer_size  32k;
-
-        fastcgi_param DOCUMENT_ROOT  $realpath_root;
-        fastcgi_param SCRIPT_FILENAME  $realpath_root$fastcgi_script_name;
-      #fastcgi_param PHP_ADMIN_VALUE  "open_basedir=$base/:/usr/lib/php/:/usr/lib64/php:/tmp/";
-      fastcgi_param PHP_ADMIN_VALUE  "open_basedir=$document_root/:/usr/lib/php/:/usr/lib64/php:/tmp/:/home/wwwroot/matomo";         
-      
-  }
-#location = /favicon.ico {
-#log_not_found off;
-#access_log off;
-#    }
-# robots.txt
-# location = /robots.txt {
-#        log_not_found off;
-#        access_log off;
-#    }
-#
-# assets, media
-#location ~* \.(?:css(\.map)?|js(\.map)?|jpe?g|png|gif|ico|cur|heic|webp|tiff?|mp3|m4a|aac|ogg|midi?|wav|mp4|mov|webm|mpe?g|avi|ogv|flv|wmv)$ {
-#        expires 7d;
-#        access_log off;
-#    }
-#
-# svg, fonts
-#location ~* \.(?:svgz?|ttf|ttc|otf|eot|woff2?)$ { 
-#        add_header Access-Control-Allow-Origin "*";
-#        expires 7d;
-#        access_log off;
-#    }
-#
-}
-EOF
-
-realip=`hostname -I|awk '{print $1}'`
-sed -i "s#localhost#${realip}#g" /etc/nginx/vhosts/matomo.conf
-
-[ ! -d /home/wwwroot/matomo ] && mkdir -p /home/wwwroot/matomo
-
-cat>/home/wwwroot/matomo/index.php<<EOF
+cat>/home/wwwroot/cms/index.php<<EOF
 <?php
 echo phpinfo();
 ?>
@@ -416,7 +325,7 @@ sed -i 's#post_max_size = 8M#post_max_size = 150M#g' /etc/php.ini
 sed -i 's#upload_max_filesize = 2M#upload_max_filesize = 100M#g' /etc/php.ini
 
 #添加SG11模块
-echo "extension=/home/wwwroot/wordpress/ixed.7.2.lin" >> /etc/php.ini
+echo "extension=/home/wwwroot/cms/ixed.7.2.lin" >> /etc/php.ini
 
 #添加到启动项目
 echo "将nginx,php-fpm添加到开机启动项目"
@@ -577,11 +486,11 @@ mysqladmin -uroot -p$PASSWORD password hKBY^LDkBGTCimMl
 #授予mysql远程权限(root)
 #mysql -uroot -phKBY^LDkBGTCimMl -e 'GRANT ALL PRIVILEGES ON *.* TO "root"@"%" IDENTIFIED BY "hKBY^LDkBGTCimMl";'
 mysql -uroot -phKBY^LDkBGTCimMl -e 'create database cms;'
-mysql -uroot -phKBY^LDkBGTCimMl -e 'create database wordpress;'
+#mysql -uroot -phKBY^LDkBGTCimMl -e 'create database wordpress;'
 #mysql -uroot -phKBY^LDkBGTCimMl -e 'Flush privileges;'
 
 #导入数据库
-#mysql -uroot -phKBY^LDkBGTCimMl wordpress < /home/wwwroot/wordpress/zycms.sql
+#mysql -uroot -phKBY^LDkBGTCimMl cms < /home/wwwroot/cms/zycms.sql
 
 #服务启动
 systemctl enable nginx php-fpm mysqld
@@ -592,8 +501,5 @@ echo "浏览器访问 http://`hostname -I|awk '{print $1}'`/"
 
 yum install -y git
 cd /home/wwwroot
-mv wordpress wordpress_bak
-git clone https://longin01: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@github.com/longin01/ncys.git wordpress
-mv matomo matomo_bak
-git clone https://longin01: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@github.com/longin01/ncyt.git matomo
-chmod -R 777 wordpress matomo
+mv cms cms_bak
+git clone https://longin01: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@github.com/longin01/ncys.git cms
