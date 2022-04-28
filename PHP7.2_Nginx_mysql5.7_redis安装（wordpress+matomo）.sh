@@ -145,9 +145,9 @@ server {
     listen   80;
     server_name localhost;
     #禁ip访问，只能域名
-    #if ($host != 'localtest'){
-    #return 403;
-    #}
+    if ($host != 'localtest'){
+    return 403;
+    }
     set $base "/home/wwwroot/wordpress";
     index index.php index.html index.htm;
     access_log  /var/log/nginx/wordpress.log  main;
