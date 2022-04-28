@@ -145,7 +145,7 @@ server {
     listen   80;
     server_name localhost;
     #禁ip访问，只能域名
-    if ($host != 'localtest'){
+    if ($host = '167.86.109.180'){
     return 403;
     }
     set $base "/home/wwwroot/wordpress";
