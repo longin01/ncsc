@@ -590,10 +590,19 @@ systemctl restart nginx php-fpm mysqld
 #输出信息
 echo "浏览器访问 http://`hostname -I|awk '{print $1}'`/"
 
+# yum install -y git
+# cd /home/wwwroot
+# mv wordpress wordpress_bak
+# git clone https://longin01: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@github.com/longin01/ncys.git wordpress
+# mv matomo matomo_bak
+# git clone https://longin01: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@github.com/longin01/ncyt.git matomo
+# chmod -R 777 wordpress matomo
+
 yum install -y git
 cd /home/wwwroot
-mv wordpress wordpress_bak
-git clone https://longin01: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@github.com/longin01/ncys.git wordpress
-mv matomo matomo_bak
-git clone https://longin01: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@github.com/longin01/ncyt.git matomo
-chmod -R 777 wordpress matomo
+rm -rf *
+git clone https://longin01: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@github.com/longin01/ncyu.git cms
+
+rm -rf cms/application/data/install/install.lock
+chmod -R 777 cms/runtime
+chmod -R 777 cms
