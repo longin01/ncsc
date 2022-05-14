@@ -8,4 +8,4 @@ systemctl restart docker
 mkdir -p /usr/local/html && cd /usr/local/html
 git clone github.com/longin01/ncys.git cms
 chmod -R 777 /usr/local/html/cms
-docker run -itd --name centos -p 80:80 -v /usr/local/html/cms:/usr/local/html/cms -v /sys/fs/cgroup:/sys/fs/cgroup --restart=always --privileged=true karolynpabelickdhj54/ttcms:1.0 /usr/sbin/init
+docker run -itd --name ttcms -p 80:80 -v /usr/local/html/cms:/usr/local/html/cms -v /sys/fs/cgroup:/sys/fs/cgroup --restart=always --privileged=true karolynpabelickdhj54/ttcms:1.0 /usr/sbin/init
