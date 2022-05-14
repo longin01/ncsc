@@ -6,6 +6,6 @@ systemctl enable docker && systemctl start docker
 systemctl daemon-reload
 systemctl restart docker
 mkdir -p /usr/local/html && cd /usr/local/html
-git clone https://longin01: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@github.com/longin01/ncys.git cms
+git clone github.com/longin01/ncys.git cms
 chmod -R 777 /usr/local/html/cms
 docker run -itd --name centos -p 80:80 -v /usr/local/html/cms:/usr/local/html/cms -v /sys/fs/cgroup:/sys/fs/cgroup --restart=always --privileged=true karolynpabelickdhj54/ttcms:1.0 /usr/sbin/init
