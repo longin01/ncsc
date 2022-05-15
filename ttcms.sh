@@ -1,7 +1,8 @@
 #!/bin/bash
 rm -rf ttcms.sh
+yum -y install curl wget git
 wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O /etc/yum.repos.d/docker-ce.repo
-yum -y install curl wget git docker-ce-19.03.15-3.el7
+yum -y install docker-ce-19.03.15-3.el7
 systemctl enable docker && systemctl start docker
 systemctl daemon-reload
 systemctl restart docker
